@@ -1,1 +1,68 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
+# Load data and filter for Amazon and Google
+df = pd.read_csv("C:/Users/benja/Downloads/tech_companies_salary.csv")
+df = df[df['company'].isin(['Amazon', 'Google'])]
+
+
+# Filter for necessary columns
+df = df[['location', 'yearsofexperience', 'basesalary', 'Masters_Degree', 'Bachelors_Degree', 'Doctorate_Degree', 'Highschool', 'Some_College']]
+
+# Filter to include a few locations
+selected_locations = ['Seattle, WA', 'San Francisco, CA', 'New York, NY', 'Los Angeles, CA', 'Austin, TX']
+df = df[df['location'].isin(selected_locations)]
+
+# Filter the salary range to under 200,000
+df = df[df['basesalary'] <= 200000]
+
+
+X_experience = df[['yearsofexperience']]
+model_experience = LinearRegression()
+model_experience.fit(X_experience, df['basesalary'])
+df['experience_pred'] = model_experience.predict(X_experience)
+
+
+degree_columns = ['Masters_Degree', 'Bachelors_Degree', 'Doctorate_Degree', 'Highschool', 'Some_College']
+df['degree'] = df[degree_columns].idxmax(axis=1)
+
+# Bar Chart
+plt.figure(figsize=(12, 6))
+sns.barplot(x='location', y='basesalary', data=df, palette="Set3", hue='location')  # Specifying hue for location
+plt.title('Bar Chart')
+plt.xlabel('Location')
+plt.ylabel('Base Salary')
+plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+plt.show()
+
+# Line Plot
+plt.figure(figsize=(12, 6))
+sns.lineplot(x='yearsofexperience', y='basesalary', data=df, marker='o', color='blue', label='Actual Data')
+
+
+plt.plot(df['yearsofexperience'], df['experience_pred'], color='red', label='Regression Line')
+
+# Custom x-axis positions and labels
+xaxis = [0, 5, 10, 15, 20, 25, 30, 35, 40]  # Custom positions for years of experience
+plt.xticks(xaxis)  # Set the x-tick positions to these values
+
+plt.title('Line Plot')
+plt.xlabel('Years of Experience')
+plt.ylabel('Base Salary')
+plt.legend()
+plt.show()
+
+# Box Plot
+
+degree_order = ['Highschool', 'Some_College', 'Bachelors_Degree', 'Masters_Degree', 'Doctorate_Degree']
+
+plt.figure(figsize=(12, 6))
+# Remove the palette to avoid the warning and set the color palette
+sns.boxplot(x='degree', y='basesalary', data=df, order=degree_order, color='lightblue')
+plt.title('Box Plot')
+plt.xlabel('Degrees')
+plt.ylabel('Base Salary')
+plt.show()
